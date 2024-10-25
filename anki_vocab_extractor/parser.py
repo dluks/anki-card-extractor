@@ -1,97 +1,60 @@
 """Parses a "Wortzchatz" page on learngerman.dw.com to extract German vocabulary words
 and their English translations."""
 
-import requests
-from bs4 import BeautifulSoup, NavigableString
-from bs4.element import Tag
-
 # pyright: reportOptionalMemberAccess=false
+from bs4 import BeautifulSoup
+from playwright.sync_api import sync_playwright
 
-
-class VocabularyWord:
-    """A German word and its English translation, along with optional multimedia."""
-
-    def __init__(
-        self,
-        german_primary: str,
-        translation: str,
-        german_secondary: str | None = None,
-        image_url: str | None = None,
-        audio_url: str | None = None,
-    ):
-        self.german_primary: str = german_primary
-        self.translation: str = translation
-        self.german_secondary: str | None = german_secondary
-        self.image_url: str | None = image_url
-        self.audio_url: str | None = audio_url
-
-    def __repr__(self) -> str:
-        return f"VocabularyWord({self.german_primary}, {self.translation})"
-
-    def __eq__(self, other):
-        return self.german_primary == other.german_primary
-
-    @classmethod
-    def from_html(cls, vocab_div: Tag):
-        """Construct a VocabularyWord object from a BeautifulSoup div tag"""
-        # Column 1: German words
-        german_ctr = vocab_div.div
-        if german_ctr is None:
-            raise ValueError("No German word found in the vocabulary div")
-        cls.german_primary = german_ctr.strong.string.strip()
-        cls.audio_url = german_ctr.audio.source["src"] if german_ctr.audio else None  # type: ignore
-        cls.german_secondary = (
-            german_ctr.span.string.strip() if german_ctr.span else None
-        )
-
-        # Column 2: Image (if exists)
-        image_ctr = german_ctr.next_sibling
-        cls.image_url = image_ctr.img["src"] if image_ctr.img else None
-
-        # Column 3: English translation
-        translation_ctr = image_ctr.next_sibling
-        cls.translation = translation_ctr.span.p.string.strip()
-
-        return cls
-
-
-class VocabularyList:
-    """A list of VocabularyWord objects"""
-
-    def __init__(self, vocabulary_words: list[VocabularyWord]):
-        self.vocabulary_words = vocabulary_words
-
-    def __repr__(self) -> str:
-        return f"VocabularyList({self.vocabulary_words})"
-
-    def __eq__(self, other):
-        return self.vocabulary_words == other.vocabulary_words
-
-    @classmethod
-    def from_html(cls, vocabulary_container: Tag | NavigableString):
-        """Construct a VocabularyList object from a BeautifulSoup ResultSet of div tags"""
-        vocab_divs = vocabulary_container.find_all("div", recursive=False)
-        vocabulary_words = []
-        for vocab_div in vocab_divs:
-            vocabulary_words.append(VocabularyWord.from_html(vocab_div))
-        return cls(vocabulary_words)
+from anki_vocab_extractor.vocabulary import VocabularyList
 
 
 class VocabularyParser:
     """Extracts German vocabulary words and their English translations from a "Wortzchatz"
     page on learngerman.dw.com."""
 
-    def __init__(self, url: str):
+    def __init__(self, url: str, headless: bool = True):
         self.url: str = url
+        self.headless: bool = headless
+
+    def get_rendered_html(self):
+        """Uses Playwright to fetch fully rendered HTML including lazy-loaded content"""
+        # Initialize Playwright and open the browser
+        with sync_playwright() as p:
+            # Choose the browser (Chromium is used here)
+            browser = p.chromium.launch(
+                headless=self.headless
+            )  # Use headless=True to run without a GUI
+            page = browser.new_page()
+
+            # Step 1: Navigate to the URL
+            page.goto(self.url)
+
+            # Step 2: Wait for page content to load, you can also target specific elements
+            page.wait_for_load_state(
+                "networkidle"
+            )  # Wait until the network is idle (no requests for 500ms)
+
+            # Optional: Wait for specific elements to load if lazy-loading requires them
+            # page.wait_for_selector('.some-element')
+
+            # Step 3: Get the fully rendered HTML
+            rendered_html = (
+                page.content()
+            )  # This fetches the fully rendered HTML after JavaScript execution
+
+            # Step 4: Close the browser
+            browser.close()
+
+        return rendered_html
 
     def extract_vocabulary(self) -> VocabularyList:
         """Extract German vocabulary words and their English translations from the URL."""
-        # Make the HTTP request
-        response = requests.get(self.url, timeout=10)
-        response.raise_for_status()
+        rendered_html = self.get_rendered_html()
 
         # Parse the HTML
-        soup = BeautifulSoup(response.content, "html.parser")
+        soup = BeautifulSoup(rendered_html, "html.parser")
+
+        vocabulary_title = soup.find("section", id="lesson").h1.string.strip()
 
         knowledge_wrapper = soup.find("div", class_="knowledge-wrapper")
         if not knowledge_wrapper:
@@ -106,6 +69,8 @@ class VocabularyParser:
             raise ValueError("No vocabulary container found inside 'knowledge-wrapper'")
 
         # Extract German words and their English translations
-        vocabulary_list = VocabularyList.from_html(vocabulary_container)
+        vocabulary_list = VocabularyList.from_html(
+            vocabulary_container, vocabulary_title
+        )
 
         return vocabulary_list

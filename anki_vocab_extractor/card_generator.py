@@ -1,19 +1,33 @@
-# anki_vocab_extractor/card_generator.py
-import csv
-import os
+"""Description: Generates Anki flashcards from a list of German words and their English
+translations"""
+
+from pathlib import Path
+
+from anki_vocab_extractor.vocabulary import VocabularyList
 
 
 class AnkiCardGenerator:
-    def __init__(self, german_words, translations, output_dir):
-        self.german_words = german_words
-        self.translations = translations
-        self.output_dir = output_dir
+    """Generates Anki flashcards from a list of German words and their English translations"""
+
+    def __init__(self, vocabulary_list: VocabularyList, output_dir: Path):
+        self.vocab_list: VocabularyList = vocabulary_list
+        self.output_dir: Path = output_dir
 
     def generate_flashcards(self):
-        file_path = os.path.join(self.output_dir, "anki_flashcards.csv")
-        with open(file_path, mode="w", newline="", encoding="utf-8") as file:
-            writer = csv.writer(file)
-            writer.writerow(["German", "Translation"])  # Header row
+        """Generate Anki flashcards and save them to a CSV file"""
+        file_path = self.output_dir / "anki_flashcards.csv"
+        df = self.vocab_list.to_df()
+        # Write the header information to the file
+        with open(file_path, "w", encoding="utf-8") as f:
+            f.write("#separator:;\n")
+            f.write("#html:true\n")
+            columns = ";".join(df.columns)
+            f.write(f"#columns:{columns}\n")
+            f.write("#notetype:Monoglot Anxiety\n")
+            f.write("#deck:Deutsch\n")
+            f.write(f"#tags column:{len(df.columns)}\n")
 
-            for german_word, translation in zip(self.german_words, self.translations):
-                writer.writerow([german_word, translation])
+        # Append the DataFrame to the file
+        df.to_csv(
+            file_path, index=False, sep=";", encoding="utf-8", header=False, mode="a"
+        )
