@@ -3,40 +3,33 @@ and their English translations."""
 
 # pyright: reportOptionalMemberAccess=false
 from abc import ABC, abstractmethod
-from typing import Any
 
 from bs4 import BeautifulSoup
-from playwright.sync_api import sync_playwright
 
-from anki_vocab_extractor.vocabulary import VocabularyList
-
-# class CardParser(ABC):
-#     """Abstract base class for parsing cards from a webpage."""
-
-#     def __init__(self): ...
-
-#     @abstractmethod
-#     def get_html(self):
-#         """Fetch HTML content from the URL."""
-
-#     @abstractmethod
-#     def extract_cards(self) -> CardList:
-#         """Extract cards from the HTML content."""
+from anki_vocab_extractor.card import CardList
 
 
-class VocabularyParser:
-    """Extracts German vocabulary words and their English translations from a "Wortzchatz"
-    page on learngerman.dw.com."""
+class CardParser(ABC):
+    """Abstract base class for parsing cards from a webpage."""
 
     def __init__(self, html: str):
         self.html: str = html
 
-    def extract_vocabulary(self) -> VocabularyList:
+    @abstractmethod
+    def extract_cards(self) -> CardList:
+        """Extract cards from the HTML content."""
+
+
+class LearnGermanCardParser(CardParser):
+    """Extracts German vocabulary words and their English translations from a "Wortzchatz"
+    page on learngerman.dw.com."""
+
+    def extract_cards(self) -> CardList:
         """Extract German vocabulary words and their English translations from the URL."""
         # Parse the HTML
         soup = BeautifulSoup(self.html, "html.parser")
 
-        vocabulary_title = soup.find("section", id="lesson").h1.string.strip()
+        section_title = soup.find("section", id="lesson").h1.string.strip()
 
         knowledge_wrapper = soup.find("div", class_="knowledge-wrapper")
         if not knowledge_wrapper:
@@ -51,8 +44,6 @@ class VocabularyParser:
             raise ValueError("No vocabulary container found inside 'knowledge-wrapper'")
 
         # Extract German words and their English translations
-        vocabulary_list = VocabularyList.from_html(
-            vocabulary_container, vocabulary_title
-        )
+        card_list = CardList.from_html(vocabulary_container, section_title)
 
-        return vocabulary_list
+        return card_list

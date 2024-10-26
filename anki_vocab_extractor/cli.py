@@ -1,9 +1,8 @@
 import argparse
-import os
 from pathlib import Path
 
-from .parser import VocabularyParser
 from .card_generator import AnkiCardGenerator
+from .parser import LearnGermanCardParser
 
 
 def main():
@@ -28,8 +27,8 @@ def main():
     args.output_dir.mkdir(parents=True, exist_ok=True)
 
     # Parse the vocabulary
-    vocab_parser = VocabularyParser(args.url)
-    vocabulary_list = vocab_parser.extract_vocabulary()
+    vocab_parser = LearnGermanCardParser(args.url)
+    vocabulary_list = vocab_parser.extract_cards()
     # print(vocabulary_list)
 
     # Generate the Anki cards

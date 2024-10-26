@@ -4,36 +4,37 @@
 
 
 import logging
+from abc import ABC, abstractmethod
+from dataclasses import dataclass
+
+import pandas as pd
 from bs4 import NavigableString
 from bs4.element import Tag
-import pandas as pd
 
 log = logging.getLogger(__name__)
 
-class VocabularyWord:
+
+class Card(ABC):
+    """Abstract base class for representing a vocabulary card"""
+
+    @abstractmethod
+    def to_dict(self) -> dict:
+        """Convert the card to a dictionary"""
+
+
+@dataclass
+class MonoglotAnxietyCard(Card):
     """A German word and its English translation, along with optional multimedia."""
 
-    def __init__(
-        self,
-        german: str,
-        translation: str,
-        info: str = "",
-        img: str = "",
-        german_audio: str = "",
-        register: str = "",
-        example: str = "",
-        example_audio: str = "",
-        tags: str = "",
-    ):
-        self.german: str = german
-        self.translation: str = translation
-        self.info: str = info
-        self.img: str = img
-        self.german_audio: str = german_audio
-        self.register: str = register
-        self.example: str = example
-        self.example_audio: str = example_audio
-        self.tags: str = tags
+    german: str
+    translation: str
+    info: str = ""
+    img: str = ""
+    german_audio: str = ""
+    register: str = ""
+    example: str = ""
+    example_audio: str = ""
+    tags: str = ""
 
     def __repr__(self) -> str:
         return f"VocabularyWord({self.german}, {self.translation})"
@@ -121,28 +122,28 @@ class VocabularyWord:
         if translation_ctr.span.p:
             translation = translation_ctr.span.p.string.strip()
         else:
-            log.warning("No translation found for \"%s\"", german)
+            log.warning('No translation found for "%s"', german)
             translation = ""
 
         return cls(german, translation, info, img, german_audio, register)
 
 
-class VocabularyList:
+class CardList:
     """A list of VocabularyWord objects"""
 
-    def __init__(self, vocabulary_words: list[VocabularyWord], title: str = ""):
-        self.vocabulary_words: list[VocabularyWord] = vocabulary_words
+    def __init__(self, cards: list[Card], title: str = ""):
+        self.cards: list[Card] = cards
         self.title: str = title
 
     def __repr__(self) -> str:
-        return f"VocabularyList({self.vocabulary_words})"
+        return f"CardList({self.cards})"
 
     def __eq__(self, other):
-        return self.vocabulary_words == other.vocabulary_words
+        return self.cards == other.cards
 
     def to_df(self) -> pd.DataFrame:
         """Convert the VocabularyList to a pandas DataFrame."""
-        return pd.DataFrame([word.to_dict() for word in self.vocabulary_words]).assign(
+        return pd.DataFrame([word.to_dict() for word in self.cards]).assign(
             tags=self.title.lower().replace(" ", "-")
         )
 
@@ -152,5 +153,5 @@ class VocabularyList:
         vocab_divs = vocabulary_container.find_all("div", recursive=False)
         vocabulary_words = []
         for vocab_div in vocab_divs:
-            vocabulary_words.append(VocabularyWord.from_html(vocab_div))
+            vocabulary_words.append(MonoglotAnxietyCard.from_html(vocab_div))
         return cls(vocabulary_words, title)
