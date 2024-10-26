@@ -1,17 +1,27 @@
 """Description: Generates Anki flashcards from a list of German words and their English
 translations"""
 
+from abc import ABC
 from pathlib import Path
 
-from anki_vocab_extractor.card import CardList
+from .card import CardList
 
 
-class AnkiCardGenerator:
-    """Generates Anki flashcards from a list of German words and their English translations"""
+class CardGenerator(ABC):
+    """Abstract base class for generating Anki flashcards"""
 
-    def __init__(self, card_list: CardList, output_dir: Path):
+    def __init__(self, card_list: CardList, deck: str, output_dir: Path):
         self.card_list: CardList = card_list
+        self.deck: str = deck
         self.output_dir: Path = output_dir
+
+    def generate_flashcards(self):
+        """Generate Anki flashcards and save them to a file"""
+        raise NotImplementedError
+
+
+class MonoglotAnxietyCardGenerator(CardGenerator):
+    """Generates Anki flashcards per the Monoglot Anxiety note type"""
 
     def generate_flashcards(self):
         """Generate Anki flashcards and save them to a CSV file"""
@@ -24,7 +34,7 @@ class AnkiCardGenerator:
             columns = ";".join(df.columns)
             f.write(f"#columns:{columns}\n")
             f.write("#notetype:Monoglot Anxiety\n")
-            f.write("#deck:Deutsch\n")
+            f.write(f"#deck:{self.deck}\n")
             f.write(f"#tags column:{len(df.columns)}\n")
 
         # Append the DataFrame to the file

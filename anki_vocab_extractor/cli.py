@@ -1,16 +1,21 @@
+"""Command line interface for the Anki card extractor."""
+
 import argparse
 from pathlib import Path
 
-from .card_generator import AnkiCardGenerator
-from .parser import LearnGermanCardParser
+from anki_vocab_extractor.get_html import get_html
+
+from .card_generator import MonoglotAnxietyCardGenerator
+from .parsers.learngerman import LearnGermanVocabParser
 
 
 def main():
+    """Extract Anki cards from a webpage and generate Anki importable flashcards."""
     parser = argparse.ArgumentParser(
-        description="Extract vocabulary from a webpage and generate Anki flashcards."
+        description="Extract Anki cards from a webpage and generate importable flashcards."
     )
     parser.add_argument(
-        "url", type=str, help="URL of the webpage to extract vocabulary from"
+        "url", type=str, help="URL of the webpage to extract cards from"
     )
     parser.add_argument(
         "-o",
@@ -26,13 +31,13 @@ def main():
     args.output_dir = Path(args.output_dir)
     args.output_dir.mkdir(parents=True, exist_ok=True)
 
-    # Parse the vocabulary
-    vocab_parser = LearnGermanCardParser(args.url)
-    vocabulary_list = vocab_parser.extract_cards()
-    # print(vocabulary_list)
+    # Parse the html and extract cards
+    html = get_html(args.url)
+    html_parser = LearnGermanVocabParser(html)
+    card_list = html_parser.extract_cards()
 
     # Generate the Anki cards
-    card_generator = AnkiCardGenerator(vocabulary_list, args.output_dir)
+    card_generator = MonoglotAnxietyCardGenerator(card_list, "Deutsch", args.output_dir)
     card_generator.generate_flashcards()
 
     print(f"Flashcards have been saved to {args.output_dir}")
