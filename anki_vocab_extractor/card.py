@@ -17,10 +17,11 @@ class Card(ABC):
     @abstractmethod
     def to_dict(self) -> dict:
         """Convert the card to a dictionary"""
+        raise NotImplementedError
 
 
 class CardList:
-    """A list of VocabularyWord objects"""
+    """A list of Cards"""
 
     def __init__(self, cards: list[Card], title: str = ""):
         self.cards: list[Card] = cards

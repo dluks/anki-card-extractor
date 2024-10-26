@@ -17,7 +17,9 @@ class HTMLParser(ABC):
     @abstractmethod
     def _extract_card(self, card_ctr: Tag) -> Card:
         """Extract a card from a bs4 Tag."""
+        raise NotImplementedError
 
     @abstractmethod
     def extract_cards(self, card_type: Card) -> CardList:
         """Extract cards from the HTML content."""
+        raise NotImplementedError
