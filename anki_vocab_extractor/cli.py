@@ -32,7 +32,7 @@ def main():
     args.output_dir.mkdir(parents=True, exist_ok=True)
 
     # Parse the html and extract cards
-    html = get_html(args.url)
+    html = get_html(args.url, rendered=True)
     html_parser = LearnGermanVocabParser(html)
     card_list = html_parser.extract_cards()
 
