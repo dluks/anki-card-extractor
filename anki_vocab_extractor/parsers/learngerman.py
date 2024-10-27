@@ -103,7 +103,7 @@ class LearnGermanVocabParser(HTMLParser):
             return "Substantiv"
         if info.split(", ")[-1].startswith("hat"):
             return "Verb"
-        if info != "":
+        if info != "" and len(info.split(", ")) == 3:
             return "Adjektiv"
         return "Sonstiges"
 
