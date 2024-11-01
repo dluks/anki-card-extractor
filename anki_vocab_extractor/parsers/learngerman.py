@@ -99,11 +99,15 @@ class LearnGermanVocabParser(HTMLParser):
     @staticmethod
     def _get_register(german: str, info: str) -> str:
         """Determine the part of speech of the vocabulary item."""
-        if german.startswith(("der ", "die ", "das ")):
+        if (
+            german.startswith(("der ", "die ", "das "))
+            or any(article in german for article in ("(m.", "(f.", "(n."))
+            or ", -" in german
+        ):
             return "Substantiv"
         if info.split(", ")[-1].startswith("hat"):
             return "Verb"
-        if info != "" and len(info.split(", ")) == 3:
+        if info != "" and len(info.split(", ")) == 2:
             return "Adjektiv"
         return "Sonstiges"
 
@@ -112,6 +116,47 @@ class LearnGermanVocabParser(HTMLParser):
         german: str,
         info: str,
     ) -> tuple[str, str]:
+        # From B1 onwards, nouns are shortened to include the singular, plural, and
+        # gender in the primary field. E.g. "Gegenteil, -e (n.)"
+        def _reformat_b1(gender_hint: str, german: str, info: str) -> tuple[str, str]:
+            if gender_hint not in ("(m.)", "(f.)", "(n.)"):
+                raise ValueError(
+                    f"gender_hint must be one of '(m.)', '(f.)', or '(n.)', not {gender_hint}."
+                )
+            match gender_hint:
+                case "(m.)":
+                    german = f"der {german}"
+                case "(f.)":
+                    german = f"die {german}"
+                case "(n.)":
+                    german = f"das {german}"
+
+            if gender_hint[:3] in german:
+                if gender_hint[:3] + ", " in german:
+                    info = german.split(gender_hint[:3] + ", ")[1].replace(")", "")
+                    info = f"<i>{info}</i>"
+                    german = german.split(f" {gender_hint[:3]}")[0]
+                else:
+                    german = german.replace(f" {gender_hint}", "")
+            return german, info
+
+        if any(article in german for article in ("(m.", "(f.", "(n.")):
+            # Prepend the article to the noun and remove the gender hint at the end
+            # Sometimes the gender hint includes plural information, such as:
+            # "Arbeitslosengeld, (n., nur Singular)". so we need to handle this case as
+            # well.
+            if "(m." in german:
+                german, info = _reformat_b1("(m.)", german, info)
+            elif "(f." in german:
+                # german = f"die {german.replace(' (f.', '')}"
+                german, info = _reformat_b1("(f.)", german, info)
+            elif "(n." in german:
+                german, info = _reformat_b1("(n.)", german, info)
+            return german, info
+
+        if ", -" in german:
+            return german, ""
+
         parts = german.split(", ")
         german = parts[0].strip()
         info_from_german = parts[1].strip() if len(parts) > 1 else ""
