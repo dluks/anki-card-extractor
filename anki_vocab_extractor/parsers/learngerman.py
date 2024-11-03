@@ -63,7 +63,10 @@ class LearnGermanVocabParser(HTMLParser):
             translation = ""
             log.warning("Translation not found for %s", german)
         else:
-            translation = bs4str(translation.p.string).strip()
+            try:
+                translation = bs4str(translation.p.string).strip()
+            except ValueError:
+                translation = translation.p.contents[0].string.strip()
         img, german_audio = self._card_media(german_ctr, image_ctr)
 
         return MonoglotAnxietyCard(
