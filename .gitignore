@@ -202,3 +202,5 @@ pip-selfcheck.json
 # End of https://www.toptal.com/developers/gitignore/api/python,venv,visualstudiocode
 run_with_poetry.sh
 flashcards
+debug_pytest.sh
+debug_python.sh
