@@ -108,7 +108,7 @@ class LearnGermanVocabParser(HTMLParser):
             or ", -" in german
         ):
             return "Substantiv"
-        if info.split(", ")[-1].startswith("hat"):
+        if info.split(", ")[-1].startswith("hat") or german.endswith("en"):
             return "Verb"
         if info != "" and len(info.split(", ")) == 2:
             return "Adjektiv"
