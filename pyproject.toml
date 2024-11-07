@@ -22,6 +22,3 @@ types-beautifulsoup4 = "^4.12.0.20241020"
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
-
-[tool.poetry.repositories.testpypi]
-url = "https://test.pypi.org/legacy/"

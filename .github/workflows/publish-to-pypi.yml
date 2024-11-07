@@ -30,6 +30,11 @@ jobs:
         run: |
           poetry install
           poetry build
+      
+      # Step 5: Configure Poetry repository
+      - name: Configure Poetry repository
+        run: |
+          poetry config repositories.testpypi https://test.pypi.org/legacy/
 
       - name: Publish to TestPyPI
         env:
