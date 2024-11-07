@@ -3,7 +3,7 @@
 import argparse
 from pathlib import Path
 
-from anki_vocab_extractor.get_html import get_html
+from anki_card_extractor.get_html import get_html
 
 from .card_generator import MonoglotAnxietyCardGenerator
 from .parsers.learngerman import LearnGermanVocabParser

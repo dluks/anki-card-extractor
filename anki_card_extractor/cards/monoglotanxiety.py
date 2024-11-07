@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from anki_vocab_extractor.card import Card
+from anki_card_extractor.card import Card
 
 
 @dataclass

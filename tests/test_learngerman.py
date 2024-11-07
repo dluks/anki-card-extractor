@@ -6,9 +6,9 @@ import re
 import pytest
 from bs4 import BeautifulSoup
 
-from anki_vocab_extractor.card import CardList
-from anki_vocab_extractor.cards.monoglotanxiety import MonoglotAnxietyCard
-from anki_vocab_extractor.parsers.learngerman import LearnGermanVocabParser
+from anki_card_extractor.card import CardList
+from anki_card_extractor.cards.monoglotanxiety import MonoglotAnxietyCard
+from anki_card_extractor.parsers.learngerman import LearnGermanVocabParser
 
 
 @pytest.fixture

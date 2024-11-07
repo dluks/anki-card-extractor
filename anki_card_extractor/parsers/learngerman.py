@@ -4,10 +4,10 @@ import logging
 
 from bs4 import BeautifulSoup, Tag
 
-from anki_vocab_extractor.card import CardList
-from anki_vocab_extractor.cards.monoglotanxiety import MonoglotAnxietyCard
-from anki_vocab_extractor.html_parser import HTMLParser
-from anki_vocab_extractor.utils import bs4str, bs4tag
+from anki_card_extractor.card import CardList
+from anki_card_extractor.cards.monoglotanxiety import MonoglotAnxietyCard
+from anki_card_extractor.html_parser import HTMLParser
+from anki_card_extractor.utils import bs4str, bs4tag
 
 log = logging.getLogger(__name__)
 
