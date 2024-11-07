@@ -40,4 +40,4 @@ jobs:
         env:
           POETRY_PYPI_TOKEN_PYPI: ${{ secrets.TEST_PYPI_TOKEN }}
         run: |
-          poetry publish -vvv --build --repository testpypi --username __token__ --password $POETRY_PYPI_TOKEN_PYPI
+          poetry publish -vvv --repository testpypi --username __token__ --password $POETRY_PYPI_TOKEN_PYPI
