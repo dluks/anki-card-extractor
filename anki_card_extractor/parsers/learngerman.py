@@ -66,7 +66,10 @@ class LearnGermanVocabParser(HTMLParser):
             try:
                 translation = bs4str(translation.p.string).strip()
             except ValueError:
-                translation = translation.p.contents[0].string.strip()
+                try:
+                    translation = translation.p.contents[0].string.strip()
+                except AttributeError:
+                    translation = translation.p.text.strip()
         img, german_audio = self._card_media(german_ctr, image_ctr)
 
         return MonoglotAnxietyCard(
